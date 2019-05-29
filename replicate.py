@@ -3,6 +3,7 @@ import os.path
 import time
 import getopt
 import shutil
+from distutils.dir_util import copy_tree
 
 
 def debug(origin, destiny):
@@ -40,27 +41,18 @@ def debug(origin, destiny):
             print("O ficheiro " + str(file_debug) + " iria ser copiado para o diretório Destino.")
 
 
-def copy(origin, destiny):
-    #  Copia ficheiros da origem para o destino.
-    for src_dir, dirs, files in os.walk(origin):  # Percorre a Origem / Source Folder
-        dst_dir = src_dir.replace(origin, destiny)  # Replace é usado para obter o Path do destino.
+def copy(src, destiny, origin):
 
-        if not os.path.exists(dst_dir):
-            os.mkdir(dst_dir) # Cria o diretório destino se ele não existir
+    if os.path.isfile(src):
+        shutil.copy2(src, destiny)
 
-        for file_ in files:
-            src_file = os.path.join(src_dir, file_)  # Faz um join do path da Origem com o do ficheiro
-            dst_file = os.path.join(dst_dir, file_)  # Faz um join do path do Destino com o do ficheiro
-
-            if os.path.exists(dst_file):
-                os.remove(dst_file)  # Vê se o ficheiro existe se existir remove
-
-            shutil.copy2(src_file, dst_dir) # Copia o ficheiro para o destino
+    if os.path.isdir(src):
+        copy_tree(origin, destiny)
 
 
 def silence_information(origin):
 
-    copy(origin,destiny)
+    copy_tree(origin,destiny)
     dir_name_origin = os.path.abspath(origin)
 
     if os.path.isdir(dir_name_origin):
@@ -82,7 +74,7 @@ def help():
 
 def detailed_information(origin, destiny):
 
-    copy(origin, destiny)  # Copia os ficheiros da origem para o destino
+    copy_tree(origin, destiny)  # Copia os ficheiros da origem para o destino
     origin_path = os.path.abspath(origin)  # Path da origem
     origin_list = os.listdir(origin)  # Lista com ficheiros da origem
     destiny_path = os.path.abspath(destiny)  # Path do destino
@@ -184,7 +176,8 @@ if __name__ == "__main__":
 
         if without_duplicates:
             for file in without_duplicates:
-                copy(origin, destiny)
+                src_file = os.path.join(dir_origin, file)  # Faz um join do path da Origem com o do ficheiro
+                copy(src_file, destiny, origin)
 
             print("\nCópia concluída com sucesso! :)")
 
