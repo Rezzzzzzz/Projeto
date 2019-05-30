@@ -3,6 +3,7 @@ import os.path
 import time
 import getopt
 import shutil
+from distutils.dir_util import copy_tree
 
 
 def debug(origin, destiny):
@@ -24,11 +25,11 @@ def debug(origin, destiny):
 
             if destiny_raw_string == origin_raw_string:
 
-                if time.ctime(os.path.getmtime(origin_path_join)) != time.ctime(os.path.getmtime(destiny_path_join)) and os.path.isfile(origin_path_join) and os.path.isfile(destiny_path_join):
-                    print("O ficheiro " + str(origin_list[i]) + " iria ser copiado para o diretório Destino.")
+                if time.ctime(os.path.getmtime(origin_path_join)) != time.ctime(os.path.getmtime(destiny_path_join)):
+                    print("O ficheiro ou diretorio " + str(origin_list[i]) + " iria ser copiado para o diretório Destino.")
 
-                elif time.ctime(os.path.getmtime(origin_path_join)) == time.ctime(os.path.getmtime(destiny_path_join)) and os.path.isfile(origin_path_join) and os.path.isfile(destiny_path_join):
-                    print("O ficheiro " + str(origin_list[i]) + " não iria ser copiado para o diretório Destino.")
+                elif time.ctime(os.path.getmtime(origin_path_join)) == time.ctime(os.path.getmtime(destiny_path_join)):
+                    print("O ficheiro ou diretorio " + str(origin_list[i]) + " não iria ser copiado para o diretório Destino.")
 
             if not os.path.exists(destiny_path_join_exist):
                 exist_list.append(str(origin_list[i]))
@@ -40,27 +41,18 @@ def debug(origin, destiny):
             print("O ficheiro " + str(file_debug) + " iria ser copiado para o diretório Destino.")
 
 
-def copy(origin, destiny):
-    #  Copia ficheiros da origem para o destino.
-    for src_dir, dirs, files in os.walk(origin):  # Percorre a Origem / Source Folder
-        dst_dir = src_dir.replace(origin, destiny)  # Replace é usado para obter o Path do destino.
+def copy(src, destiny, src_destiny):  #TODO o de diretórios ainda não está a funcionar
 
-        if not os.path.exists(dst_dir):
-            os.mkdir(dst_dir) # Cria o diretório destino se ele não existir
+    if os.path.isdir(src) and not os.path.exists(src_destiny):
+        shutil.copytree(src, src_destiny)
 
-        for file_ in files:
-            src_file = os.path.join(src_dir, file_)  # Faz um join do path da Origem com o do ficheiro
-            dst_file = os.path.join(dst_dir, file_)  # Faz um join do path do Destino com o do ficheiro
-
-            if os.path.exists(dst_file):
-                os.remove(dst_file)  # Vê se o ficheiro existe se existir remove
-
-            shutil.copy2(src_file, dst_dir) # Copia o ficheiro para o destino
+    elif os.path.isfile(src):
+        shutil.copy2(src, destiny)
 
 
 def silence_information(origin):
 
-    copy(origin,destiny)
+    copy_tree(origin,destiny)
     dir_name_origin = os.path.abspath(origin)
 
     if os.path.isdir(dir_name_origin):
@@ -82,7 +74,7 @@ def help():
 
 def detailed_information(origin, destiny):
 
-    copy(origin, destiny)  # Copia os ficheiros da origem para o destino
+    copy_tree(origin, destiny)  # Copia os ficheiros da origem para o destino
     origin_path = os.path.abspath(origin)  # Path da origem
     origin_list = os.listdir(origin)  # Lista com ficheiros da origem
     destiny_path = os.path.abspath(destiny)  # Path do destino
@@ -184,7 +176,9 @@ if __name__ == "__main__":
 
         if without_duplicates:
             for file in without_duplicates:
-                copy(origin, destiny)
+                src_file = os.path.join(dir_origin, file)  # Faz um join do path da Origem com o do ficheiro
+                src_file_destiny = os.path.join(dir_destiny, file)
+                copy(src_file, dir_destiny, src_file_destiny)
 
             print("\nCópia concluída com sucesso! :)")
 
